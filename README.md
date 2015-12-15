@@ -123,36 +123,36 @@ module ApiModels
 
       # Or, preferrably, define a custom filter class in `app/api_models/filters`...
       #
-      #   module ApiModels
-      #     module Filters
-      #       class RegisterDateFilter < RailsApiModels::Filters::Base
-      #         def apply_scope(relation, key, value)
-      #           relation.where 'DATE(created_at) = DATE(?)', param_value
-      #         end
-      #       end
-      #     end
-      #   end
+      module ApiModels
+        module Filters
+          class RegisterDateFilter < RailsApiModels::Filters::Base
+            def apply_scope(relation, key, value)
+              relation.where 'DATE(created_at) = DATE(?)', param_value
+            end
+          end
+        end
+      end
       #
       # ...and use it here:
       #
-      # filter :register_date, Filters::RegisterDateFilter
+      filter :register_date, Filters::RegisterDateFilter
 
       # Set default filter
       default rank: :user
 
       # This works with all filters that can be used as a URL parameter:
-      # default 'rank:lt' => 1
+      default 'rank:lt' => 1
       #
       # You sometimes need a block:
-      # default { {'created_at:lt' => Time.zone.now} }
+      default { {'created_at:lt' => Time.zone.now} }
       #
       # You can default to custom filters as well:
-      # default { {register_date: Time.zone.now} }
+      default { {register_date: Time.zone.now} }
 
       # You can also filter by fields of an associated model. Let's say you have `has_many :posts`
       # on `User`. If you have defined `ApiModel::Post`
       #
-      #   allowed_associations :posts
+      allowed_associations :posts
       #
       # This enable you to do `api/users?posts.created_at:gt=2015-12-01` which will give you all users
       # who have posted since 2015-12-01. This will only work if you have `allowed_fields :created_at`
@@ -165,9 +165,9 @@ module ApiModels
 
       # Set named groups of fields:
       #
-      #   group :basic, [:name, :email]
-      #   group :extended, [:name, :email, :rank]
-      #   group :timestamps, [:created_at, :updated_at]
+      group :basic, [:name, :email]
+      group :extended, [:name, :email, :rank]
+      group :timestamps, [:created_at, :updated_at]
       #
       # This allows you to conveniently set which fields you want returned:
       #
@@ -176,14 +176,14 @@ module ApiModels
       #
       # This is how the `_defaults` field works:
       #
-      #   group :_defaults, User.fields.default
+      group :_defaults, User.fields.default
 
       # If not specified otherwise, display only these fields
       default :name, :email
 
       # You can also display an embedded object for a referenced model:
       #
-      #   allowed_associations :posts, default_group: :basic
+      allowed_associations :posts, default_group: :basic
       #
       #   GET /api/users?fields=basic,posts => object with `name`, `email` and `posts` array
       #
