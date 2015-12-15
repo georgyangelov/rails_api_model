@@ -8,12 +8,12 @@ module RailsApiModel
         column = activerecord_model.arel_table[key]
 
         relation.where case modifier
-                       when nil          then column.eq(value)
-                       when 'not'.freeze then column.not_eq(value)
-                       when 'lt'.freeze  then column.lt(value)
-                       when 'lte'.freeze then column.lteq(value)
-                       when 'gt'.freeze  then column.gt(value)
-                       when 'gte'.freeze then column.gteq(value)
+                       when 'eq'.freeze, nil then column.eq(value)
+                       when 'not'.freeze     then column.not_eq(value)
+                       when 'lt'.freeze      then column.lt(value)
+                       when 'lte'.freeze     then column.lteq(value)
+                       when 'gt'.freeze      then column.gt(value)
+                       when 'gte'.freeze     then column.gteq(value)
                        # TODO: Handle this error via Rails and send 400
                        else raise FilterError.new("Invalid modifier #{modifier}")
                        end
@@ -46,7 +46,7 @@ module RailsApiModel
       def to_boolean(value)
         case value
         # `true` is supported for arguments passed during testing
-        when true, 'true'.freeze, 't'.freeze, '1'.freeze then true
+        when true, 'true'.freeze, 't'.freeze, '1'.freeze, 'y'.freeze, 'yes'.freeze then true
         else false
         end
       end
