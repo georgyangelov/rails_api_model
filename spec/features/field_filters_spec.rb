@@ -15,18 +15,22 @@ describe 'Field filters' do
     db_model.create(email: '3')
   end
 
-  # it 'does not filter anything by default' do
-  #   model = build_model(db_model) do
-  #   end
+  it 'does not filter anything by default' do
+    model = build_model(db_model) do
+    end
 
-  #   expect(model.load({})).to eq db_model.all
-  # end
+    request = Request.new
 
-  # it 'can filter by field equality' do
-  #   model = build_model(db_model) do
-  #     filter_with Filters::Field.new(:email)
-  #   end
+    expect(model.load(request)).to eq db_model.all
+  end
 
-  #   expect(model.load(email: '2')).to eq db_model.where(email: 2)
-  # end
+  it 'can filter by field equality' do
+    model = build_model(db_model) do
+      filter_with Filters::Field.new(self, :email)
+    end
+
+    request = Request.new email: '2'
+
+    expect(model.load(request)).to eq db_model.where(email: 2)
+  end
 end

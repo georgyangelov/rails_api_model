@@ -5,3 +5,4 @@ include RailsApiModel
 
 require_relative 'support/model_helpers'
 require_relative 'support/database_helpers'
+require_relative 'support/request'

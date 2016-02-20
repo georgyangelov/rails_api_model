@@ -2,6 +2,7 @@ module DatabaseHelpers
   TEMP_DB_FILE = File.expand_path('../../tmp/database.sqlite3', __FILE__)
 
   def create_schema(&block)
+    ActiveRecord::Migration.verbose = false
     ActiveRecord::Migration.class_eval(&block)
   end
 
