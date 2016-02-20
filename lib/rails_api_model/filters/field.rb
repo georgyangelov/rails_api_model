@@ -1,25 +1,40 @@
 module RailsApiModel
   module Filters
     # TODO: Check whether the ActiveRecord model has the specified field
-    class Field < BaseFilter
-      def apply_scope(relation, key, value)
-        key, modifier = key.split(':'.freeze, 2)
-        value = transform_type(value)
-        column = activerecord_model.arel_table[key]
+    class Field < Base
+      def initialize(field_name)
+        @key = field_name
+      end
 
-        relation.where case modifier
-                       when 'eq'.freeze, nil then column.eq(value)
-                       when 'not'.freeze     then column.not_eq(value)
-                       when 'lt'.freeze      then column.lt(value)
-                       when 'lte'.freeze     then column.lteq(value)
-                       when 'gt'.freeze      then column.gt(value)
-                       when 'gte'.freeze     then column.gteq(value)
-                       # TODO: Handle this error via Rails and send 400
-                       else raise FilterError.new("Invalid modifier #{modifier}")
-                       end
+      def apply_scope(relation, params)
+        relevant_parameters = params.select { |param| params.split(':'.freeze).first == @key }
+
+        relevant_parameters.reduce(relation) do |relation, (param, value)|
+          apply_single_filter relation, param, value
+        end
       end
 
       private
+
+      def apply_single_filter(relation, param, value)
+        modifier = param.split(':'.freeze).last
+        column   = activerecord_model.arel_table[@key]
+
+        relation.where arel_filter(modifier, transform_type(value))
+      end
+
+      def arel_filter(modifier, value)
+        case modifier
+        when 'eq'.freeze, nil then column.eq(value)
+        when 'not'.freeze     then column.not_eq(value)
+        when 'lt'.freeze      then column.lt(value)
+        when 'lte'.freeze     then column.lteq(value)
+        when 'gt'.freeze      then column.gt(value)
+        when 'gte'.freeze     then column.gteq(value)
+        # TODO: Handle this error via Rails and send 400
+        else raise FilterError.new("Invalid modifier #{modifier}")
+        end
+      end
 
       def transform_type(value)
         column_type = activerecord_model.columns_hash[filter_key].type

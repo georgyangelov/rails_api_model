@@ -22,18 +22,4 @@ describe RailsApiModel::Filters do
       expect(klass.filters).to eq ['filter one']
     end
   end
-
-  describe '.add_filters' do
-    it 'adds a filter' do
-      RailsApiModel::Filters.add_filters(klass, 'filter one')
-
-      expect(klass.filters).to eq ['filter one']
-    end
-
-    it 'can add multiple filters if given an array' do
-      RailsApiModel::Filters.add_filters(klass, ['filter one', 'filter two'])
-
-      expect(klass.filters).to eq ['filter one', 'filter two']
-    end
-  end
 end

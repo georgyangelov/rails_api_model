@@ -1,4 +1,4 @@
-require 'rails_api_model/filters/base_filter'
+require 'rails_api_model/filters/base'
 require 'rails_api_model/filters/field'
 
 module RailsApiModel
@@ -8,10 +8,6 @@ module RailsApiModel
     included do
       class_attribute :filters
       self.filters = []
-    end
-
-    def self.add_filters(model, filters)
-      model.filters += Array.wrap(filters)
     end
   end
 end
