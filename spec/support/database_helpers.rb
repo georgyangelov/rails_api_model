@@ -6,14 +6,12 @@ module DatabaseHelpers
     ActiveRecord::Migration.class_eval(&block)
   end
 
-  def create_db_model(class_name, &block)
-    Class.new(ActiveRecord::Base) do
-      define_singleton_method :name do
-        class_name.to_s.camelize
-      end
-
+  def create_ar_model(name, &block)
+    model = Class.new(ActiveRecord::Base) do
       class_exec &block if block_given?
     end
+
+    stub_const name.to_s.classify, model
   end
 
   def connect_to_database

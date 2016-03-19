@@ -25,6 +25,10 @@ module RailsApiModel
           .map  { |field_name| ::Filters::Field.new(self, field_name) }
           .each { |filter| filter_with filter }
         end
+
+        def allow_association(name, model)
+          filter_with ::Filters::Association.new(self, name, model)
+        end
       end
     end
   end

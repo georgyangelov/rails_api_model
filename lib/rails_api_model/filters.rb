@@ -1,5 +1,6 @@
 require 'rails_api_model/filters/base'
 require 'rails_api_model/filters/field'
+require 'rails_api_model/filters/association'
 
 module RailsApiModel
   module Filters
