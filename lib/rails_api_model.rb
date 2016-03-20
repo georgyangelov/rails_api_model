@@ -7,15 +7,7 @@ require 'active_support/lazy_load_hooks'
 
 require 'active_record'
 
-require 'rails_api_model/version'
-require 'rails_api_model/error'
-require 'rails_api_model/filter_error'
-require 'rails_api_model/filters'
-
-require 'rails_api_model/builders/filters'
-
-require 'rails_api_model/model_api'
-require 'rails_api_model/base'
+Dir["#{__dir__}/rails_api_model/**/*.rb"].each { |f| require f }
 
 module RailsApiModel
 

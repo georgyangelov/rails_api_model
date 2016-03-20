@@ -1,33 +1,27 @@
 module RailsApiModel
   module Filters
-    # TODO: Check whether the ActiveRecord model has the specified field
-    class Field < Base
-      TRUTHY_VALUES = [
-        true, 'true'.freeze, 't'.freeze, '1'.freeze, 'y'.freeze, 'yes'.freeze
-      ].freeze
-
-      def initialize(api_model, field_name)
-        super api_model
-
-        @key = field_name.to_s
+    class FieldFilter
+      def initialize(fields)
+        @fields = fields.map(&:to_s)
       end
 
-      def apply_scope(relation, request)
-        apply_single_filter_for_each_param(relation, request) do |param|
-          param.split(':').first == @key
+      def call(scope, context)
+        context.params.reduce(scope) do |scope, (raw_key, raw_value)|
+          key, modifier = raw_key.split(':'.freeze, 2)
+
+          next scope unless @fields.include? key
+
+          scope.where(arel_filter(context.ar_model, key, modifier, raw_value))
         end
       end
 
       private
 
-      def apply_single_filter(relation, param, value)
-        modifier = param.include?(':') ? param.split(':', 2).last : nil
-        column   = ar_model.arel_table[@key]
+      def arel_filter(ar_model, key, modifier, raw_value)
+        column      = ar_model.arel_table[key]
+        column_type = ar_model.columns_hash[key].type
+        value       = transform_type(column_type, raw_value)
 
-        relation.where arel_filter(column, modifier, transform_type(value))
-      end
-
-      def arel_filter(column, modifier, value)
         case modifier
         when 'eq'.freeze, nil then column.eq(value)
         when 'not'.freeze     then column.not_eq(value)
@@ -36,13 +30,11 @@ module RailsApiModel
         when 'gt'.freeze      then column.gt(value)
         when 'gte'.freeze     then column.gteq(value)
         # TODO: Handle this error via Rails and send 400
-        else raise FilterError.new("Invalid modifier #{modifier}")
+        else raise "Invalid modifier #{modifier}"
         end
       end
 
-      def transform_type(value)
-        column_type = ar_model.columns_hash[@key].type
-
+      def transform_type(column_type, value)
         # TODO: Verify all of these types actually exist
         # TODO: Support range queries with some syntax.
         #       Maybe `start_time:gt=2015-11-03&start_time:lt=2015-12-19`

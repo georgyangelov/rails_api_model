@@ -3,40 +3,69 @@ require 'spec_helper'
 describe 'Association filters' do
   before do
     create_schema do
-      create_table :artists do |t|
+      create_table :accounts do |t|
         t.string :name
+        t.integer :login_count
       end
 
-      create_table :listings do |t|
+      create_table :users do |t|
         t.string :name
-        t.belongs_to :artist
+        t.belongs_to :account
       end
     end
 
-    create_ar_model :artist
-    create_ar_model :listing do
-      belongs_to :artist
+    create_ar_model :account
+    create_ar_model :user do
+      belongs_to :account
     end
 
-    @artist_one = Artist.create name: 'artist 1'
-    @artist_two = Artist.create name: 'artist 2'
+    @account_one = Account.create name: 'account 1', login_count: 1
+    @account_two = Account.create name: 'account 2', login_count: 2
 
-    @listing_one = Listing.create name: 'listing 1', artist: @artist_one
-    @listing_two = Listing.create name: 'listing 2', artist: @artist_one
-    Listing.create name: 'listing 3', artist: @artist_two
+    @user_one = User.create name: 'user 1', account: @account_one
+    @user_two = User.create name: 'user 2', account: @account_one
+    User.create name: 'user 3', account: @account_two
   end
 
   it 'can filter by associated model fields' do
-    artist_model = build_model(Artist) do
-      filter_with Filters::Field.new(self, :name)
+    account_model = build_model(Account) do
+      filter_with Filters::FieldFilter.new([:name])
     end
 
-    listing_model = build_model(Listing) do
-      filter_with Filters::Association.new(self, :artist, artist_model)
+    user_model = build_model(User) do
+      filter_with Filters::AssociationFilter.new(account: account_model)
     end
 
-    request = Request.new 'artist.name' => 'artist 1'
+    request = Request.new 'account.name' => 'account 1'
 
-    expect(listing_model.load(request)).to eq [@listing_one, @listing_two]
+    expect(user_model.filter(request)).to eq [@user_one, @user_two]
+  end
+
+  it 'can filter by associated fields with modifiers' do
+    account_model = build_model(Account) do
+      filter_with Filters::FieldFilter.new([:login_count])
+    end
+
+    user_model = build_model(User) do
+      filter_with Filters::AssociationFilter.new(account: account_model)
+    end
+
+    request = Request.new 'account.login_count:lt' => '2'
+
+    expect(user_model.filter(request)).to eq [@user_one, @user_two]
+  end
+
+  it 'ignores filtering by non-allowed fields' do
+    account_model = build_model(Account) do
+      filter_with Filters::FieldFilter.new([:name])
+    end
+
+    user_model = build_model(User) do
+      filter_with Filters::AssociationFilter.new(account: account_model)
+    end
+
+    request = Request.new 'account.login_count' => '2'
+
+    expect(user_model.filter(request)).to eq User.all.to_a
   end
 end
